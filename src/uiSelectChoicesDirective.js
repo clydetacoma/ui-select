@@ -51,7 +51,7 @@ uis.directive('uiSelectChoices',
 
         scope.$watch('$select.search', function(newValue) {
           if(newValue && !$select.open && $select.multiple) $select.activate(false, true);
-          $select.activeIndex = $select.tagging.isActivated ? -1 : 0;
+          $select.activeIndex = $select.tagging.isActivated || !$select.firstItemActive ? -1 : 0;
           $select.refresh(attrs.refresh);
         });
 
@@ -59,6 +59,12 @@ uis.directive('uiSelectChoices',
           // $eval() is needed otherwise we get a string instead of a number
           var refreshDelay = scope.$eval(attrs.refreshDelay);
           $select.refreshDelay = refreshDelay !== undefined ? refreshDelay : uiSelectConfig.refreshDelay;
+        });
+
+        attrs.$observe('firstItemActive', function() {
+          // $eval() is needed otherwise we get a string instead of a boolean
+          var firstItemActive = scope.$eval(attrs.firstItemActive);
+          $select.firstItemActive = firstItemActive !== undefined ? firstItemActive : uiSelectConfig.firstItemActive;
         });
       };
     }

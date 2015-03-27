@@ -211,7 +211,7 @@ describe('ui-select tests', function() {
 
     expect(getMatchLabel(el)).toEqual('Adam');
   });
-  
+
   it('should correctly render initial state with track by feature', function() {
     var el = compileTemplate(
       '<ui-select ng-model="selection.selected"> \
@@ -319,13 +319,13 @@ describe('ui-select tests', function() {
   it('should toggle allow-clear directive', function() {
     scope.selection.selected = scope.people[0];
     scope.isClearAllowed = false;
-    
+
     var el = createUiSelect({theme : 'select2', allowClear: '{{isClearAllowed}}'});
     var $select = el.scope().$select;
 
     expect($select.allowClear).toEqual(false);
     expect(el.find('.select2-search-choice-close').length).toEqual(0);
-    
+
     // Turn clear on
     scope.isClearAllowed = true;
     scope.$digest();
@@ -1233,12 +1233,15 @@ describe('ui-select tests', function() {
             if (attrs.closeOnSelect !== undefined) { attrsHtml += ' close-on-select="' + attrs.closeOnSelect + '"'; }
             if (attrs.tagging !== undefined) { attrsHtml += ' tagging="' + attrs.tagging + '"'; }
             if (attrs.taggingTokens !== undefined) { attrsHtml += ' tagging-tokens="' + attrs.taggingTokens + '"'; }
+            if (attrs.firstItemActive === undefined) { attrs.firstItemActive = true; }
+        } else {
+            attrs = { firstItemActive: true };
         }
 
         return compileTemplate(
             '<ui-select multiple ng-model="selection.selectedMultiple"' + attrsHtml + ' theme="bootstrap" style="width: 800px;"> \
                 <ui-select-match placeholder="Pick one...">{{$item.name}} &lt;{{$item.email}}&gt;</ui-select-match> \
-                <ui-select-choices repeat="person in people | filter: $select.search"> \
+                <ui-select-choices repeat="person in people | filter: $select.search" first-item-active="' + attrs.firstItemActive + '"> \
                   <div ng-bind-html="person.name | highlight: $select.search"></div> \
                   <div ng-bind-html="person.email | highlight: $select.search"></div> \
                 </ui-select-choices> \
@@ -1504,10 +1507,32 @@ describe('ui-select tests', function() {
         var el = createUiSelectMultiple();
         var searchInput = el.find('.ui-select-search');
 
-        triggerKeydown(searchInput, Key.Down)
-        triggerKeydown(searchInput, Key.Enter)
-        expect(scope.selection.selectedMultiple.length).toEqual(2);
+        triggerKeydown(searchInput, Key.Down); //Open dropdown
+        el.scope().$select.activeIndex = 0;
 
+        triggerKeydown(searchInput, Key.Down);
+        triggerKeydown(searchInput, Key.Enter);
+        expect(scope.selection.selectedMultiple.length).toEqual(2);
+    });
+
+    it('should close choices on ENTER when firstItemActive set to false', function() {
+
+        scope.selection.selectedMultiple = [scope.people[5]]; //Samantha
+        var el = createUiSelectMultiple({firstItemActive: false});
+        var searchInput = el.find('.ui-select-search');
+
+        triggerKeydown(searchInput, Key.Enter);
+        expect(el.scope().$select.open).toEqual(false);
+    });
+
+    it('should close choices on TAB when firstItemActive set to false', function() {
+
+        scope.selection.selectedMultiple = [scope.people[5]]; //Samantha
+        var el = createUiSelectMultiple({firstItemActive: false});
+        var searchInput = el.find('.ui-select-search');
+
+        triggerKeydown(searchInput, Key.Tab);
+        expect(el.scope().$select.open).toEqual(false);
     });
 
     it('should increase $select.activeIndex when pressing DOWN key from dropdown', function() {

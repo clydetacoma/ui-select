@@ -16,12 +16,13 @@ uis.controller('uiSelectCtrl',
   ctrl.searchEnabled = uiSelectConfig.searchEnabled;
   ctrl.sortable = uiSelectConfig.sortable;
   ctrl.refreshDelay = uiSelectConfig.refreshDelay;
+  ctrl.firstItemActive = uiSelectConfig.firstItemActive;
 
   ctrl.removeSelected = false; //If selected item(s) should be removed from dropdown list
   ctrl.closeOnSelect = true; //Initialized inside uiSelect directive link function
   ctrl.search = EMPTY_SEARCH;
 
-  ctrl.activeIndex = 0; //Dropdown of choices
+  ctrl.activeIndex = ctrl.firstItemActive ? 0 : -1; //Dropdown of choices
   ctrl.items = []; //All available choices
 
   ctrl.open = false;
@@ -43,7 +44,7 @@ uis.controller('uiSelectCtrl',
   if (ctrl.searchInput.length !== 1) {
     throw uiSelectMinErr('searchInput', "Expected 1 input.ui-select-search but got '{0}'.", ctrl.searchInput.length);
   }
-  
+
   ctrl.isEmpty = function() {
     return angular.isUndefined(ctrl.selected) || ctrl.selected === null || ctrl.selected === '';
   };
@@ -68,12 +69,14 @@ uis.controller('uiSelectCtrl',
 
       ctrl.open = true;
 
-      ctrl.activeIndex = ctrl.activeIndex >= ctrl.items.length ? 0 : ctrl.activeIndex;
+      ctrl.activeIndex = ctrl.activeIndex >= ctrl.items.length ? (ctrl.firstItemActive ? 0 : -1) : ctrl.activeIndex;
 
       // ensure that the index is set to zero for tagging variants
       // that where first option is auto-selected
-      if ( ctrl.activeIndex === -1 && ctrl.taggingLabel !== false ) {
+      if ( ctrl.firstItemActive && ctrl.activeIndex === -1 && ctrl.taggingLabel !== false ) {
         ctrl.activeIndex = 0;
+      } else {
+        ctrl.activeIndex = -1;
       }
 
       // Give it time to appear before focus
@@ -375,13 +378,20 @@ uis.controller('uiSelectCtrl',
         else if (ctrl.activeIndex > 0 || (ctrl.search.length === 0 && ctrl.tagging.isActivated && ctrl.activeIndex > -1)) { ctrl.activeIndex--; }
         break;
       case KEY.TAB:
-        if (!ctrl.multiple || ctrl.open) ctrl.select(ctrl.items[ctrl.activeIndex], true);
+        if ((!ctrl.multiple || ctrl.open) && ctrl.activeIndex >= 0) {
+          ctrl.select(ctrl.items[ctrl.activeIndex], true);
+        } else {
+          ctrl.close();
+        }
         break;
       case KEY.ENTER:
         if(ctrl.open && ctrl.activeIndex >= 0){
           ctrl.select(ctrl.items[ctrl.activeIndex]); // Make sure at least one dropdown item is highlighted before adding.
         } else {
           ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+          if(!ctrl.firstItemActive) {
+            ctrl.close();
+          }
         }
         break;
       case KEY.ESC:

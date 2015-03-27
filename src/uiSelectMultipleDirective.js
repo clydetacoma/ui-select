@@ -9,7 +9,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
           $select = $scope.$select,
           ngModel;
 
-      //Wait for link fn to inject it 
+      //Wait for link fn to inject it
       $scope.$evalAsync(function(){ ngModel = $scope.ngModel; });
 
       ctrl.activeMatchIndex = -1;
@@ -21,7 +21,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
 
       ctrl.refreshComponent = function(){
         //Remove already selected items
-        //e.g. When user clicks on a selection, the selected array changes and 
+        //e.g. When user clicks on a selection, the selected array changes and
         //the dropdown should remove that item
         $select.refreshItems();
         $select.sizeSearchInput();
@@ -120,7 +120,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
         };
         if (!inputValue) return resultMultiple; //If ngModel was undefined
         for (var k = inputValue.length - 1; k >= 0; k--) {
-          //Check model array of currently selected items 
+          //Check model array of currently selected items
           if (!checkFnMultiple($select.selected, inputValue[k])){
             //Check model array of all items available
             if (!checkFnMultiple(data, inputValue[k])){
@@ -131,8 +131,8 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
         }
         return resultMultiple;
       });
-      
-      //Watch for external model changes 
+
+      //Watch for external model changes
       scope.$watchCollection(function(){ return ngModel.$modelValue; }, function(newValue, oldValue) {
         if (oldValue != newValue){
           ngModel.$modelValue = null; //Force scope model value and ngModel value to be out of sync to re-run formatters
@@ -253,7 +253,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
 
         if ( ! KEY.isVerticalMovement(e.which) ) {
           scope.$evalAsync( function () {
-            $select.activeIndex = $select.taggingLabel === false ? -1 : 0;
+            $select.activeIndex = $select.taggingLabel === false || !$select.firstItemActive ? -1 : 0;
           });
         }
         // Push a "create new" item into array if there is a search string
@@ -264,7 +264,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
             return;
           }
           // always reset the activeIndex to the first item when tagging
-          $select.activeIndex = $select.taggingLabel === false ? -1 : 0;
+          $select.activeIndex = $select.taggingLabel === false || !$select.firstItemActive ? -1 : 0;
           // taggingLabel === false bypasses all of this
           if ($select.taggingLabel === false) return;
 
@@ -324,7 +324,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
               if ( hasTag ) {
                 items = stashArr;
                 scope.$evalAsync( function () {
-                  $select.activeIndex = 0;
+                  $select.activeIndex = $select.firstItemActive ? 0 : -1;
                   $select.items = items;
                 });
               }
@@ -348,7 +348,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
             items = items.concat(stashArr);
           }
           scope.$evalAsync( function () {
-            $select.activeIndex = 0;
+            $select.activeIndex = $select.firstItemActive ? 0 : -1;
             $select.items = items;
           });
         }
